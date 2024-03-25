@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -71,8 +70,8 @@ void *progress_thread_setup(void *arg) {
     return NULL;
 }
 
-void *progress_thread_setup_2(void *arg) {
-    struct BarThreadInfo *thread_info = arg;    
+void progress_thread_setup_2() {
+    struct BarThreadInfo *thread_info = 0//arg;    
 
     for(thread_info->progress = 0;
         thread_info->progress <
@@ -82,7 +81,6 @@ void *progress_thread_setup_2(void *arg) {
         usleep(1000);
     }
 
-    return NULL;
 }
 
 void process_progress_bar(int bar_threads, char *process_name, struct BarThreadInfo threads[]) {
@@ -105,54 +103,23 @@ void process_progress_bar(int bar_threads, char *process_name, struct BarThreadI
     }
 }
 
-void MAKE_CBAR(int bar_threads, int process_value, char *process_name) {
+void MAKE_CBAR(int bar_threads, int process_value, char *process_name, void *your_thread_func()) {
     struct BarThreadInfo threads[bar_threads];
+
+    bool done = false;
 
     for(int i  = 0; i < bar_threads; i++) {
         threads[i].count_to_value = process_value;
         threads[i].progress = 0;
 
-        pthread_create(&threads[i].current_thread, NULL, progress_thread_setup, &threads[i]);
+        pthread_create(&threads[i].current_thread, NULL, your_thread_func, &threads[i]);
     }
     process_progress_bar(bar_threads, process_name, threads);
 }
 
-int add(int a, int b) {
-    return a + b;
-}
-
-
-float divide(int a, int b) {
-    return (float)a / (float)b;
-}
-
-void plus_ele(int arr[]) {
-    for(int i = 0; i < 10; i++) {
-        printf("%d", arr[i] + i);
-    }
-}
-
 int main() {
-    // Give an array of function pointers to the params of MAKE_CBAR(... function_array[]) func, then 
-
-    //MAKE_CBAR(2, 1000, "testing: \t");
-    MAKE_CBAR(1, 1000 * 2, "testing_2: \t");
-
-    double time_taken;
-
-    int arr[] = {1, 4, 2, 5, 6, 8, 8, 5, 9};
-
-    clock_t t; 
-
-    t = clock(); 
-    plus_ele(arr);
-    t = clock() - t; 
-
-    time_taken = ((double)t) / CLOCKS_PER_SEC;
-    
-    printf("%d", (int)time_taken);
-
-    MAKE_CBAR(1, 0, "ele");
+    MAKE_CBAR(2, 1000, "testing: \t", progress_thread_setup);
+    MAKE_CBAR(1, 1000 * 2, "testing_2: \t", progress_thread_setup_2);
 
     return 0;
 }
